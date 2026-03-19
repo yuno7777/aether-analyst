@@ -1,5 +1,7 @@
 'use client';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -73,7 +75,7 @@ export default function Dashboard() {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/health');
+        const res = await fetch(`${API_BASE}/api/health`);
         setBackendOnline(res.ok);
       } catch (e) {
         setBackendOnline(false);
@@ -126,7 +128,7 @@ export default function Dashboard() {
 
   const refreshMemory = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/memory');
+      const res = await fetch(`${API_BASE}/api/memory`);
       if (res.ok) {
         const data = await res.json();
         setMemoryContent(data.content);
@@ -138,7 +140,7 @@ export default function Dashboard() {
 
   const fetchSessions = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/sessions');
+      const res = await fetch(`${API_BASE}/api/sessions`);
       if (res.ok) setSessions(await res.json());
     } catch (e) {
       console.error('Failed to fetch sessions:', e);
@@ -147,7 +149,7 @@ export default function Dashboard() {
 
   const fetchReports = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/reports');
+      const res = await fetch(`${API_BASE}/api/reports`);
       if (res.ok) setReports(await res.json());
     } catch (e) {
       console.error('Failed to fetch reports:', e);
@@ -158,7 +160,7 @@ export default function Dashboard() {
     try {
       setSessionId(currSessionId);
       setActiveTab('chat');
-      const res = await fetch(`http://localhost:8000/api/chat/history/${currSessionId}`);
+      const res = await fetch(`${API_BASE}/api/chat/history/${currSessionId}`);
       if (res.ok) {
         const history = await res.json();
         const formatted = history.map((msg: any) => ({
@@ -207,7 +209,7 @@ export default function Dashboard() {
         const formData = new FormData();
         formData.append('file', attachedFiles[0]);
         
-        const uploadRes = await fetch('http://localhost:8000/api/upload', {
+        const uploadRes = await fetch(`${API_BASE}/api/upload`, {
           method: 'POST',
           body: formData,
         });
@@ -222,7 +224,7 @@ export default function Dashboard() {
       
       const backendMode = agentMode === 'Research Agent' ? 'research' : agentMode === 'Analyst Agent' ? 'analyst' : 'combined';
       
-      const chatRes = await fetch('http://localhost:8000/api/chat', {
+      const chatRes = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -250,7 +252,7 @@ export default function Dashboard() {
         plots: []
       }]);
       
-      const eventSource = new EventSource(`http://localhost:8000/api/chat/stream/${chatData.run_id}`);
+      const eventSource = new EventSource(`${API_BASE}/api/chat/stream/${chatData.run_id}`);
       
       eventSource.onmessage = (event) => {
         const data = JSON.parse(event.data);
@@ -679,13 +681,13 @@ export default function Dashboard() {
                                         {msg.reportId && (
                                           <>
                                             <button 
-                                              onClick={() => window.open(`http://localhost:8000/api/reports/${msg.reportId}/pdf`, '_blank')}
+                                              onClick={() => window.open(`${API_BASE}/api/reports/${msg.reportId}/pdf`, '_blank')}
                                               className="px-3.5 py-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-xs font-medium transition-colors flex items-center gap-1.5 text-white/70 hover:text-white"
                                             >
                                               <Eye className="w-3.5 h-3.5" /> View
                                             </button>
                                             <a 
-                                              href={`http://localhost:8000/api/reports/${msg.reportId}/pdf`}
+                                              href={`${API_BASE}/api/reports/${msg.reportId}/pdf`}
                                               download={`Report_${msg.reportId}.pdf`}
                                               className="px-3.5 py-1.5 rounded-lg bg-[#c4b5fd] text-black hover:bg-[#b3a1f8] text-xs font-medium transition-colors flex items-center gap-1.5"
                                             >
@@ -703,9 +705,9 @@ export default function Dashboard() {
                                       {msg.plots.map((plotPath: string, i: number) => {
                                         const filename = plotPath.split(/[/\\]/).pop();
                                         return (
-                                          <div key={i} className="rounded-xl overflow-hidden border border-white/[0.08] bg-white/[0.02] shadow-sm hover:border-[#c4b5fd]/40 transition-colors group cursor-zoom-in" onClick={() => window.open(`http://localhost:8000/api/plots/${filename}`, '_blank')}>
+                                          <div key={i} className="rounded-xl overflow-hidden border border-white/[0.08] bg-white/[0.02] shadow-sm hover:border-[#c4b5fd]/40 transition-colors group cursor-zoom-in" onClick={() => window.open(`${API_BASE}/api/plots/${filename}`, '_blank')}>
                                             <img 
-                                              src={`http://localhost:8000/api/plots/${filename}`} 
+                                              src={`${API_BASE}/api/plots/${filename}`} 
                                               alt={`Data Visualization ${i + 1}`} 
                                               className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500" 
                                             />
@@ -907,13 +909,13 @@ export default function Dashboard() {
                     
                     <div className="flex gap-2 mt-auto">
                       <button 
-                        onClick={() => window.open(`http://localhost:8000/api/reports/${report.id}/pdf`, '_blank')}
+                        onClick={() => window.open(`${API_BASE}/api/reports/${report.id}/pdf`, '_blank')}
                         className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 text-white/70 hover:text-white"
                       >
                         <Eye className="w-4 h-4" /> View
                       </button>
                       <a 
-                        href={`http://localhost:8000/api/reports/${report.id}/pdf`}
+                        href={`${API_BASE}/api/reports/${report.id}/pdf`}
                         download={`Report_${report.id}.pdf`}
                         className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 text-white/70 hover:text-white"
                       >
