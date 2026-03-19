@@ -7,6 +7,10 @@
 <samp>Universal Intelligence. Deep Research. Flawless Analysis.</samp>
 <br><br>
 
+🌐 **[Live Demo](https://aether-analyst.vercel.app/dashboard)** · 📡 **[API Health](https://aether-backend.duckdns.org/api/health)**
+
+<br>
+
 [![Next.js](https://img.shields.io/badge/Next.js_16-black?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://react.dev/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -15,6 +19,10 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_4-0f172a?style=flat-square&logo=tailwindcss&logoColor=38bdf8)](https://tailwindcss.com/)
 [![Chroma DB](https://img.shields.io/badge/Chroma_DB-FF9E0F?style=flat-square&logo=chroma&logoColor=black)](https://trychroma.com/)
 [![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=flat-square&logo=framer&logoColor=white)](https://www.framer.com/motion/)
+[![AWS EC2](https://img.shields.io/badge/AWS_EC2-FF9900?style=flat-square&logo=amazonec2&logoColor=white)](https://aws.amazon.com/ec2/)
+[![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white)](https://vercel.com/)
+[![Let's Encrypt](https://img.shields.io/badge/SSL-Let's_Encrypt-003A70?style=flat-square&logo=letsencrypt&logoColor=white)](https://letsencrypt.org/)
+[![Nginx](https://img.shields.io/badge/Nginx-009639?style=flat-square&logo=nginx&logoColor=white)](https://nginx.org/)
 
 <br>
 
@@ -72,11 +80,22 @@ Aether Analyst centralizes cognitive labor. You upload a dataset and provide a p
 ## Architecture
 
 ```text
-                              +---------------------+
-                              |   Next.js 16 UI     |
-                              |  (Route: /dashboard)|
-                              +----------+----------+
-                                         |  SSE & REST API
+   ┌──────────────────────────────────────────────────────────────────┐
+   │                    PRODUCTION TOPOLOGY                          │
+   │                                                                 │
+   │  ┌──────────────────┐       HTTPS        ┌──────────────────┐  │
+   │  │   Vercel CDN     │ ◄───────────────── │    User Browser  │  │
+   │  │  (Next.js 16)    │                    └──────────────────┘  │
+   │  └────────┬─────────┘                                          │
+   │           │ HTTPS (API calls)                                  │
+   │           ▼                                                    │
+   │  ┌──────────────────┐    reverse    ┌──────────────────────┐   │
+   │  │  Nginx + SSL     │ ──proxy────── │  Gunicorn + Uvicorn  │   │
+   │  │  (Let's Encrypt) │    :8000      │  (FastAPI Backend)   │   │
+   │  └──────────────────┘               └──────────┬───────────┘   │
+   │      AWS EC2 (t2.micro)                        │               │
+   └────────────────────────────────────────────────┼───────────────┘
+                                                    │
                           +--------------+--------------+
                           |                             |
                 +---------v---------+        +----------v----------+
@@ -159,6 +178,10 @@ Aether Analyst splits its cognitive load across three distinct agent modes, allo
 <tr><td>Reporting</td><td>ReportLab, PIL</td><td>Professional PDF generation with embedded chart images</td></tr>
 <tr><td>Data Visualization</td><td>Matplotlib, Seaborn</td><td>Automated premium dark-themed chart generation</td></tr>
 <tr><td>Data Processing</td><td>Pandas, NumPy, Scikit-Learn</td><td>Agent sandbox statistical capabilities</td></tr>
+<tr><td>Cloud Infrastructure</td><td>AWS EC2 (t2.micro)</td><td>Backend hosting with systemd process management</td></tr>
+<tr><td>Reverse Proxy</td><td>Nginx</td><td>HTTPS termination, request proxying, and static serving</td></tr>
+<tr><td>SSL/TLS</td><td>Let's Encrypt (Certbot)</td><td>Free automated HTTPS certificate with auto-renewal</td></tr>
+<tr><td>Frontend Hosting</td><td>Vercel</td><td>Edge-optimized CDN deployment with CI/CD on git push</td></tr>
 </table>
 
 ---
@@ -213,6 +236,35 @@ npm run dev
 ```
 
 The application will be available at `http://localhost:3000/dashboard`.
+
+---
+
+## Deployment
+
+Aether Analyst runs a **split deployment** architecture in production:
+
+| Component | Platform | URL |
+|:---|:---|:---|
+| **Frontend** | Vercel (CDN + Edge) | [aether-analyst.vercel.app](https://aether-analyst.vercel.app) |
+| **Backend API** | AWS EC2 (t2.micro) | [aether-backend.duckdns.org](https://aether-backend.duckdns.org) |
+| **SSL** | Let's Encrypt (auto-renew) | Managed by Certbot + Nginx |
+
+### Infrastructure Details
+
+- **Compute**: AWS EC2 `t2.micro` (Free Tier) running Ubuntu with a 4GB swap file for memory-intensive operations
+- **Process Manager**: `systemd` service (`aether-backend.service`) with auto-restart on failure and boot
+- **Application Server**: Gunicorn + Uvicorn worker bound to `0.0.0.0:8000`
+- **Reverse Proxy**: Nginx handles HTTPS termination, proxies requests to Gunicorn, and serves with `proxy_buffering off` for real-time SSE streaming
+- **DNS**: DuckDNS free dynamic DNS pointing to the EC2 Elastic IP
+- **CI/CD**: Vercel auto-deploys the frontend on every push to `main`; backend is updated via `git pull && systemctl restart`
+
+### Environment Variables
+
+| Variable | Where | Purpose |
+|:---|:---|:---|
+| `GEMINI_API_KEY` | EC2 `.env` | Google Gemini API authentication |
+| `GEMINI_MODEL` | EC2 `.env` | Model selection (e.g., `gemini-3.1-flash-lite-preview`) |
+| `NEXT_PUBLIC_API_URL` | Vercel | Points frontend to the backend API URL |
 
 ---
 
