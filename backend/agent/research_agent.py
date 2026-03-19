@@ -6,7 +6,7 @@ Tools: web_search, arxiv, file_reader
 from agent.core import build_system_prompt, run_agent_loop, get_tools_description
 from memory import read_memory, recall_memories, store_memory_vector
 
-RESEARCH_TOOLS = ["web_search", "arxiv", "file_reader", "finish"]
+RESEARCH_TOOLS = ["web_search", "arxiv", "file_reader", "code_executor", "report", "finish"]
 
 RESEARCH_PROMPT_EXTRA = """
 ## Research Agent Mode
@@ -14,7 +14,11 @@ Your job is to research a topic thoroughly before any analysis begins.
 - Search the web for recent developments, techniques, and best practices
 - Fetch relevant academic papers from ArXiv
 - Read any provided documents for context
-- Synthesize findings into a structured research report
+- IMPORTANT: When asked to create charts/graphs/visualizations, you MUST use the `code_executor` tool to run Python code with matplotlib/seaborn. Example:
+  - Generate aesthetic charts with dark backgrounds: `sns.set_style("darkgrid")`, `plt.style.use('dark_background')`
+  - Always call `plt.show()` at the end to save the plot
+  - The saved plot paths will be automatically included
+- When done researching/analyzing, use the `report` tool to create a structured PDF report. All chart paths from code_executor will be auto-injected into the PDF.
 - Always cite your sources
 - Focus on methodology extraction and key takeaways
 - When done, use the finish action with a comprehensive summary

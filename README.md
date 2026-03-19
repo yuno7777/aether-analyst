@@ -7,7 +7,7 @@
 <samp>Universal Intelligence. Deep Research. Flawless Analysis.</samp>
 <br><br>
 
-[![Next.js](https://img.shields.io/badge/Next.js_15-black?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js_16-black?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React_19-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://react.dev/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Python](https://img.shields.io/badge/Python_3.13-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org/)
@@ -26,7 +26,7 @@
 
 **Aether Analyst** is an advanced, autonomous AI research and data analysis platform. Designed with a sleek, distraction-free "pitch-black" UI infused with soft lavender accents, it provides a premium workspace where artificial intelligence operates as an intelligent, independent agent. 
 
-Unlike traditional chat interfaces, Aether Analyst doesn't just talk to you—it acts. Powered by Google Gemini under a robust ReAct (Reasoning + Acting) loop, the platform can browse the web, scrape academic papers from ArXiv, autonomously write and execute Python code against your CSV/Excel files, and instantly generate styled PDF reports. 
+Unlike traditional chat interfaces, Aether Analyst doesn't just talk to you—it acts. Powered by Google Gemini under a robust ReAct (Reasoning + Acting) loop, the platform can browse the web, scrape academic papers from ArXiv, autonomously write and execute Python code against your CSV/Excel files, generate beautiful data visualizations in real-time, and instantly compile styled PDF reports with embedded charts. 
 
 Everything you accomplish is securely persisted, fully transparent, and instantly accessible.
 
@@ -47,7 +47,7 @@ Data analysis and academic research are notoriously fragmented. You search the w
 
 ### The Solution
 
-Aether Analyst centralizes cognitive labor. You upload a dataset and provide a prompt. The AI transparently streams its reasoning, fetches the necessary tools, executes sandboxed Python code to gather insights, models the data, and outputs a formatted PDF report—all without you leaving the chat dashboard.
+Aether Analyst centralizes cognitive labor. You upload a dataset and provide a prompt. The AI transparently streams its reasoning, fetches the necessary tools, executes sandboxed Python code to gather insights, generates stunning visualizations, and outputs a formatted PDF report—all without you leaving the chat dashboard.
 
 </td>
 </tr>
@@ -58,11 +58,14 @@ Aether Analyst centralizes cognitive labor. You upload a dataset and provide a p
 | Capability | Description |
 |:---|:---|
 | **Autonomous ReAct Engine** | The core AI operates on a Thought → Action → Observation loop, allowing it to correct its own mistakes and chain complex tools together. |
-| **Sandboxed Code Execution** | Safely writes and executes Python code (pandas, scikit-learn, etc.) to analyze your spreadsheets and CSVs live in the background. |
+| **Sandboxed Code Execution** | Safely writes and executes Python code (pandas, scikit-learn, matplotlib, seaborn, etc.) to analyze your spreadsheets and CSVs live in the background. |
+| **Real-Time Chart Generation** | Generates premium dark-themed data visualizations (bar charts, scatter plots, line charts, etc.) rendered directly in the chat interface. |
+| **PDF Reports with Embedded Charts** | Transforms raw analytical insights into beautifully styled PDF reports with auto-embedded visualizations, instantly downloadable from the UI. |
 | **Dual-Layer Memory System** | Uses localized Markdown documents for core identity and a Semantic ChromaDB Vector Store to perfectly recall past conversations. |
 | **Real-Time Tracing** | Through Server-Sent Events (SSE), you watch the agent's exact "thoughts," "tool calls," and "observations" stream to the UI in real-time. |
-| **Automated PDF Reports** | Transforms raw analytical insights into beautifully styled HTML, Markdown, and PDF reports instantly downloadable from the UI. |
 | **Universal File Uploads** | Directly supports dropping `.csv`, `.xlsx`, `.pdf`, and `.txt` files into the chat context. |
+| **Persistent Agent Mode** | Selected agent mode is remembered across sessions and page reloads via local storage. |
+| **Live Backend Health** | A real-time status indicator shows backend connectivity (Offline, Online, Running) with visual color states. |
 
 ---
 
@@ -70,7 +73,7 @@ Aether Analyst centralizes cognitive labor. You upload a dataset and provide a p
 
 ```text
                               +---------------------+
-                              |   Next.js 15 UI     |
+                              |   Next.js 16 UI     |
                               |  (Route: /dashboard)|
                               +----------+----------+
                                          |  SSE & REST API
@@ -129,8 +132,8 @@ Aether Analyst splits its cognitive load across three distinct agent modes, allo
 
 | Mode | Component | Description |
 |:---|:---|:---|
-| **Research Agent** | `research_agent.py` | Highly curious mode stripped of heavy data analytics. Heavily references `web_search.py` (DuckDuckGo scraping) and `arxiv.py` (academic paper fetching) to answer deep contextual questions. |
-| **Analyst Agent** | `analyst_agent.py` | Pure data cruncher. Upload a `.csv` and this agent invokes `code_executor.py` and `eda.py` to calculate moving averages, run scikit-learn models, and find absolute statistical truth. |
+| **Research Agent** | `research_agent.py` | Highly curious mode. References `web_search.py` (DuckDuckGo scraping) and `arxiv.py` (academic paper fetching) to answer deep contextual questions. Now includes `code_executor` for generating charts and visualizations. |
+| **Analyst Agent** | `analyst_agent.py` | Pure data cruncher. Upload a `.csv` and this agent invokes `code_executor.py` and `eda.py` to calculate moving averages, run scikit-learn models, generate visualizations, and find absolute statistical truth. |
 | **Combined Agent** | `combined_agent.py` | The apex orchestrator. When tasked with a massive prompt, it will first act as a researcher to understand the domain, and then shift into analyst mode to execute code against the data with enhanced domain context. |
 
 </details>
@@ -145,15 +148,16 @@ Aether Analyst splits its cognitive load across three distinct agent modes, allo
 <td><b>Technology</b></td>
 <td><b>Purpose</b></td>
 </tr>
-<tr><td>Frontend Framework</td><td>Next.js 15 (App Router)</td><td>Client dashboard, routing, and dynamic data fetching</td></tr>
+<tr><td>Frontend Framework</td><td>Next.js 16 (App Router + Turbopack)</td><td>Client dashboard, routing, and dynamic data fetching</td></tr>
 <tr><td>UI Library</td><td>React 19</td><td>Component architecture</td></tr>
 <tr><td>Backend API</td><td>FastAPI (Python)</td><td>Asynchronous AI orchestration and REST/SSE endpoints</td></tr>
-<tr><td>AI Engine</td><td>Google Gemini API</td><td>Core intelligence (gemini-3.1-flash-lite-preview)</td></tr>
+<tr><td>AI Engine</td><td>Google Gemini API (google-genai SDK)</td><td>Core intelligence (gemini-2.0-flash)</td></tr>
 <tr><td>Vector Memory</td><td>ChromaDB</td><td>Semantic search and conversational recall</td></tr>
 <tr><td>Relational DB</td><td>SQLite & SQLAlchemy</td><td>Local, zero-config persistence of sessions and output</td></tr>
 <tr><td>Styling</td><td>Tailwind CSS 4</td><td>Utility-first CSS styling on a dark theme foundation</td></tr>
 <tr><td>Animation</td><td>Framer Motion 12</td><td>Micro-interactions and accordion trace reveals</td></tr>
-<tr><td>Reporting Engines</td><td>PyMuPDF, xhtml2pdf</td><td>Document reading and PDF generation pipelines</td></tr>
+<tr><td>Reporting</td><td>ReportLab, PIL</td><td>Professional PDF generation with embedded chart images</td></tr>
+<tr><td>Data Visualization</td><td>Matplotlib, Seaborn</td><td>Automated premium dark-themed chart generation</td></tr>
 <tr><td>Data Processing</td><td>Pandas, NumPy, Scikit-Learn</td><td>Agent sandbox statistical capabilities</td></tr>
 </table>
 
@@ -170,7 +174,7 @@ Aether Analyst splits its cognitive load across three distinct agent modes, allo
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/aether-analyst.git
+git clone https://github.com/yuno7777/aether-analyst.git
 cd aether-analyst
 ```
 
@@ -219,7 +223,8 @@ Aether Analyst adheres to a strict visual and functional philosophy:
 - **Pitch Black Foundation** — Background `#050505` to eliminate visual noise and maximize analytical focus.
 - **Lavender Accent System** — Primary accent `#c4b5fd` (violet-300) to signify AI actions, thoughts, and primary interactions.
 - **Total Transparency** — We believe AI should not be a "black box". The UI uniquely exposes the agent's internal trace (thoughts, tool usage, failures) directly to the user in clean accordion logs.
-- **Zero-Friction Analysis** — If a task requires code, the AI writes the code, runs the code, and gives you the answer. You do not touch a terminal.
+- **Zero-Friction Analysis** — If a task requires code, the AI writes the code, runs the code, generates the charts, and gives you the answer. You do not touch a terminal.
+- **Premium Visualizations** — Every chart is automatically styled with a dark premium theme, vibrant accent colors, and clean typography via a forced `rcParams` injection layer.
 
 ---
 
@@ -231,7 +236,7 @@ Aether Analyst adheres to a strict visual and functional philosophy:
 
 <br>
 
-<sub>Autonomous Intelligence &middot; Code Execution &middot; Advanced Reporting</sub>
+<sub>Autonomous Intelligence &middot; Code Execution &middot; Real-Time Charts &middot; Advanced Reporting</sub>
 
 <br><br>
 

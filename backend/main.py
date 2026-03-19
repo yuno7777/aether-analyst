@@ -13,6 +13,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, BackgroundTasks
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, FileResponse, JSONResponse
 from pydantic import BaseModel
@@ -50,6 +51,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# Static files for parsing plots directly from the chat
+app.mount("/api/plots", StaticFiles(directory=REPORTS_DIR), name="plots")
 
 # ─── Startup ───
 @app.on_event("startup")

@@ -1,6 +1,6 @@
 fastapi
 uvicorn[standard]
-google-generativeai
+google-genai
 chromadb
 sqlalchemy
 sentence-transformers
@@ -17,3 +17,7 @@ aiofiles
 python-multipart
 openpyxl
 sse-starlette
+Pillow
+seaborn
+reportlab
+kaleido

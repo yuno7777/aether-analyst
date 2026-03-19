@@ -21,6 +21,7 @@ const data = [
 export default function Page() {
   const [hoveredProject, setHoveredProject] = useState<number | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [chartReady, setChartReady] = useState(false);
   const { scrollYProgress } = useScroll();
   
   // Parallax effects
@@ -63,8 +64,12 @@ export default function Page() {
 
     requestAnimationFrame(raf);
 
+    // Delay chart render until layout is stable
+    const timer = setTimeout(() => setChartReady(true), 500);
+
     return () => {
       lenis.destroy();
+      clearTimeout(timer);
     };
   }, []);
 
@@ -216,9 +221,9 @@ export default function Page() {
                     </div>
                     <span className="text-[10px] lg:text-xs text-white/40 font-mono">Epoch 42/100</span>
                   </div>
-                  <div className="h-[120px] lg:h-[180px] w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={data}>
+                  <div className="h-[120px] lg:h-[180px] w-full overflow-hidden">
+                    {chartReady && (
+                      <AreaChart data={data} width={500} height={180}>
                         <defs>
                           <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#c4b5fd" stopOpacity={0.5}/>
@@ -231,7 +236,7 @@ export default function Page() {
                         />
                         <Area type="monotone" dataKey="value" stroke="#c4b5fd" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
                       </AreaChart>
-                    </ResponsiveContainer>
+                    )}
                   </div>
                 </motion.div>
 

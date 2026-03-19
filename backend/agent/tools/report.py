@@ -55,45 +55,134 @@ def generate_report(
     with open(md_path, "w", encoding="utf-8") as f:
         f.write(md_content)
 
-    # Generate and save PDF
+    # Generate and save PDF with ReportLab
     pdf_path = os.path.join(REPORTS_DIR, f"{report_id}.pdf")
     try:
-        import markdown
-        from xhtml2pdf import pisa
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import inch
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image as RLImage, PageBreak
+
+        # Define canvas drawers for branding
+        def draw_cover_branding(canvas, doc):
+            canvas.saveState()
+            # Deep purple/black premium header
+            canvas.setFillColor(colors.HexColor("#0a0a0c"))
+            canvas.rect(0, A4[1] - 120, A4[0], 120, stroke=0, fill=1)
+            
+            canvas.setFillColor(colors.white)
+            canvas.setFont("Helvetica-Bold", 32)
+            canvas.drawString(40, A4[1] - 70, "AETHER")
+            canvas.setFillColor(colors.HexColor("#c4b5fd"))
+            canvas.drawString(185, A4[1] - 70, "ANALYST")
+            
+            # Subtitle
+            canvas.setFillColor(colors.HexColor("#999999"))
+            canvas.setFont("Helvetica", 12)
+            canvas.drawString(40, A4[1] - 95, "AUTONOMOUS INTELLIGENCE REPORT")
+
+            # Accent banner
+            canvas.setFillColor(colors.HexColor("#7c3aed"))
+            canvas.rect(0, A4[1] - 125, A4[0], 5, stroke=0, fill=1)
+            
+            # Simple footer
+            canvas.setFillColor(colors.HexColor("#999999"))
+            canvas.setFont("Helvetica", 9)
+            canvas.drawString(40, 30, f"Generated dynamically | {datetime.utcnow().strftime('%Y-%m-%d')}")
+            canvas.restoreState()
+
+        def draw_later_pages(canvas, doc):
+            canvas.saveState()
+            canvas.setFillColor(colors.HexColor("#7c3aed"))
+            canvas.rect(40, A4[1] - 40, A4[0] - 80, 2, stroke=0, fill=1)
+            canvas.setFillColor(colors.HexColor("#999999"))
+            canvas.setFont("Helvetica", 9)
+            canvas.drawString(40, 30, f"Aether Analyst | Page {doc.page}")
+            canvas.restoreState()
+
+        doc = SimpleDocTemplate(
+            pdf_path, pagesize=A4, 
+            rightMargin=40, leftMargin=40, 
+            topMargin=40, bottomMargin=40
+        )
+        styles = getSampleStyleSheet()
+
+        # Custom Styles
+        title_style = ParagraphStyle(
+            "CustomTitle", parent=styles["Heading1"], fontSize=26, spaceAfter=20,
+            textColor=colors.HexColor("#1a1a1a"), fontName="Helvetica-Bold",
+        )
+        heading_style = ParagraphStyle(
+            "CustomHeading", parent=styles["Heading2"], fontSize=18, spaceBefore=20, spaceAfter=12,
+            textColor=colors.HexColor("#4c1d95"), fontName="Helvetica-Bold",
+        )
+        body_style = ParagraphStyle(
+            "CustomBody", parent=styles["Normal"], fontSize=11, spaceAfter=10,
+            textColor=colors.HexColor("#333333"), fontName="Helvetica", leading=16,
+        )
+        bullet_style = ParagraphStyle(
+            "CustomBullet", parent=styles["Normal"], fontSize=11, spaceAfter=8,
+            textColor=colors.HexColor("#333333"), leftIndent=20, firstLineIndent=-20, leading=16,
+            bulletIndent=0
+        )
+
+        story = []
         
-        # Convert markdown to HTML
-        # Add basic styling to make the PDF look professional
-        html_content = markdown.markdown(md_content, extensions=['extra', 'codehilite'])
-        styled_html = f"""
-        <html>
-        <head>
-        <style>
-            @page {{ size: a4; margin: 2cm; }}
-            body {{ font-family: "Helvetica", "Arial", sans-serif; font-size: 11pt; line-height: 1.5; color: #333333; }}
-            h1 {{ color: #1a202c; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; font-size: 24pt; margin-bottom: 16px; }}
-            h2 {{ color: #2d3748; margin-top: 24px; font-size: 18pt; }}
-            h3 {{ color: #4a5568; margin-top: 16px; font-size: 14pt; }}
-            p {{ margin-bottom: 12px; }}
-            ul, ol {{ margin-bottom: 16px; padding-left: 20px; }}
-            li {{ margin-bottom: 6px; }}
-            code {{ font-family: "Courier New", monospace; background-color: #f7fafc; padding: 2px 4px; border-radius: 4px; font-size: 10pt; }}
-            pre {{ background-color: #f7fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; margin-bottom: 16px; }}
-            img {{ max-width: 100%; height: auto; margin-top: 16px; margin-bottom: 16px; border: 1px solid #e2e8f0; border-radius: 4px; }}
-            hr {{ border: 0; border-top: 1px solid #cbd5e0; margin: 24px 0; }}
-            .footer {{ font-size: 9pt; color: #718096; text-align: center; margin-top: 32px; font-style: italic; }}
-        </style>
-        </head>
-        <body>
-        {html_content}
-        <div class="footer">Report generated dynamically by Aether Analyst</div>
-        </body>
-        </html>
-        """
-        with open(pdf_path, "w+b") as result_file:
-            pisa.CreatePDF(styled_html, dest=result_file)
+        # Space below the huge absolute header
+        story.append(Spacer(1, 1.2 * inch))
+        
+        # Title
+        story.append(Paragraph(title, title_style))
+        story.append(Paragraph(f"<b>Agent Mode:</b> {agent_mode} &nbsp;&nbsp;|&nbsp;&nbsp; <b>Report ID:</b> {report_id[:8]}", body_style))
+        story.append(Spacer(1, 0.2 * inch))
+
+        if methodology:
+            story.append(Paragraph("Methodology", heading_style))
+            story.append(Paragraph(methodology.replace('\\n', '<br/>'), body_style))
+
+        if findings:
+            story.append(Paragraph("Key Findings", heading_style))
+            for f in findings:
+                story.append(Paragraph(f"<bullet>&bull;</bullet> {f}", bullet_style))
+
+        if plots:
+            story.append(PageBreak())
+            story.append(Spacer(1, 0.5 * inch))
+            story.append(Paragraph("Dashboards & Visualizations", heading_style))
+            for plot_path_ in plots:
+                if os.path.exists(plot_path_):
+                    try:
+                        from PIL import Image as PILImage
+                        pil_img = PILImage.open(plot_path_)
+                        orig_w, orig_h = pil_img.size
+                        pil_img.close()
+                        img = RLImage(plot_path_)
+                        img.drawWidth = 6.2 * inch
+                        img.drawHeight = img.drawWidth * (orig_h / orig_w)
+                        story.append(img)
+                        story.append(Spacer(1, 0.4 * inch))
+                    except Exception as e:
+                        print(f"Failed to load image for PDF: {e}")
+
+        if recommendations:
+            if not plots:
+                story.append(Spacer(1, 0.3 * inch))
+            story.append(Paragraph("Strategic Recommendations", heading_style))
+            for r in recommendations:
+                story.append(Paragraph(f"<bullet>&bull;</bullet> {r}", bullet_style))
+
+        if sources:
+            story.append(Spacer(1, 0.3 * inch))
+            story.append(Paragraph("Sources & Citations", heading_style))
+            for s in sources:
+                cleaned_url = s.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+                story.append(Paragraph(f"<bullet>&#8250;</bullet> <a href='{cleaned_url}' color='blue'>{cleaned_url}</a>", bullet_style))
+
+        doc.build(story, onFirstPage=draw_cover_branding, onLaterPages=draw_later_pages)
         report["pdf_path"] = pdf_path
     except Exception as e:
-        print(f"Failed to generate PDF: {e}")
+        print(f"Failed to generate aesthetic PDF via ReportLab: {e}")
 
     report["json_path"] = json_path
     report["md_path"] = md_path

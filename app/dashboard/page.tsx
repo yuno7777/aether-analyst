@@ -6,7 +6,7 @@ import {
   MessageSquare, FileText, Brain, History, Settings, 
   Search, BarChart2, Layers, StopCircle, Paperclip, 
   Send, Download, Eye, ChevronDown, ChevronRight, 
-  Terminal, Hexagon, User, FileCode2, CheckCircle2, X,
+  Terminal, Hexagon, User, FileCode2, CheckCircle2, X, Plus,
   AlertCircle, Save, Trash2, FileOutput, Play,
   MoreVertical, FileArchive, Activity, Database,
   Home, LogOut, Globe, ExternalLink
@@ -55,9 +55,34 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<Tab>('chat');
   const [agentMode, setAgentMode] = useState<AgentMode>('Combined');
   const [agentStatus, setAgentStatus] = useState<'Idle' | 'Running'>('Idle');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('aether_agent_mode') as AgentMode;
+    if (saved) setAgentMode(saved);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('aether_agent_mode', agentMode);
+  }, [agentMode]);
+  const [backendOnline, setBackendOnline] = useState(false);
   const [isModeDropdownOpen, setIsModeDropdownOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  
+  // Health check for backend
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/health');
+        setBackendOnline(res.ok);
+      } catch (e) {
+        setBackendOnline(false);
+      }
+    };
+    checkHealth();
+    const interval = setInterval(checkHealth, 30000);
+    return () => clearInterval(interval);
+  }, []);
   
   // Chat State
   const [messageInput, setMessageInput] = useState('');
@@ -154,6 +179,13 @@ export default function Dashboard() {
     fetchReports();
   }, []);
 
+  const startNewChat = () => {
+    setSessionId(null);
+    setChatMessages([]);
+    setAgentStatus('Idle');
+    setActiveTab('chat');
+  };
+
   const handleSendMessage = async () => {
     if (!messageInput.trim() && attachedFiles.length === 0) return;
     
@@ -214,7 +246,8 @@ export default function Dashboard() {
         trace: [],
         code: null,
         reportReady: false,
-        webSearchResults: null
+        webSearchResults: null,
+        plots: []
       }]);
       
       const eventSource = new EventSource(`http://localhost:8000/api/chat/stream/${chatData.run_id}`);
@@ -248,6 +281,8 @@ export default function Dashboard() {
             } else if (data.type === 'report') {
               updatedMsg.reportReady = true;
               updatedMsg.reportId = data.report_id;
+            } else if (data.type === 'plots') {
+              updatedMsg.plots = [...(updatedMsg.plots || []), ...(data.paths || [])];
             }
             return updatedMsg;
           }
@@ -287,7 +322,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white/90 flex font-sans selection:bg-[#c4b5fd]/30">
+    <div className="h-screen overflow-hidden bg-[#050505] text-white/90 flex font-sans selection:bg-[#c4b5fd]/30">
       
       {/* SIDEBAR */}
       <aside className="w-64 border-r border-white/10 flex flex-col bg-[#0a0a0a] shrink-0">
@@ -364,17 +399,22 @@ export default function Dashboard() {
             </button>
           ))}
 
-          <div className="mt-8 mb-2 px-3 text-xs font-semibold tracking-wider text-white/40 uppercase">
-            Recent chats
-          </div>
-          {sessions.slice(0, 5).map((chat) => (
-            <button key={chat.id} onClick={() => loadSession(chat.id)} className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors text-left group">
-              <span className="truncate pr-2">{chat.title || 'New Conversation'}</span>
-              <span className="text-[10px] text-white/30 group-hover:text-white/50 shrink-0">
-                {chat.created_at ? new Date(chat.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''}
-              </span>
+          <div className="mt-8 mb-2 px-3 flex items-center justify-between shrink-0">
+            <span className="text-xs font-semibold tracking-wider text-white/40 uppercase">Recent chats</span>
+            <button onClick={startNewChat} className="text-xs text-[#c4b5fd] hover:text-white transition-colors flex items-center gap-1 group">
+              <Plus className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" /> New
             </button>
-          ))}
+          </div>
+          <div className="flex-1 overflow-y-auto min-h-0 space-y-1 px-4 pb-4 custom-scrollbar">
+            {sessions.map((chat) => (
+              <button key={chat.id} onClick={() => loadSession(chat.id)} className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors text-left group">
+                <span className="truncate pr-2">{chat.title || 'New Conversation'}</span>
+                <span className="text-[10px] text-white/30 group-hover:text-white/50 shrink-0">
+                  {chat.created_at ? new Date(chat.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : ''}
+                </span>
+              </button>
+            ))}
+          </div>
         </nav>
         
         {/* User Profile Snippet */}
@@ -437,7 +477,9 @@ export default function Dashboard() {
             </div>
             
             <div className={`flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium border ${
-              agentStatus === 'Running' ? 'bg-[#c4b5fd]/10 border-[#c4b5fd]/30 text-[#c4b5fd]' : 'bg-white/5 border-white/10 text-white/50'
+              agentStatus === 'Running' ? 'bg-[#c4b5fd]/10 border-[#c4b5fd]/30 text-[#c4b5fd]' : 
+              backendOnline ? 'bg-green-500/10 border-green-500/30 text-green-400' : 
+              'bg-white/5 border-white/10 text-white/50'
             }`}>
               {agentStatus === 'Running' && (
                 <span className="relative flex h-2 w-2">
@@ -445,8 +487,13 @@ export default function Dashboard() {
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-[#c4b5fd]"></span>
                 </span>
               )}
-              {agentStatus === 'Idle' && <span className="w-2 h-2 rounded-full bg-white/30"></span>}
-              {agentStatus}
+              {agentStatus === 'Idle' && backendOnline && (
+                <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+              )}
+              {agentStatus === 'Idle' && !backendOnline && (
+                <span className="w-2 h-2 rounded-full bg-white/30"></span>
+              )}
+              {agentStatus === 'Running' ? 'Running' : backendOnline ? 'Backend Online' : 'Offline'}
             </div>
           </div>
 
@@ -647,6 +694,24 @@ export default function Dashboard() {
                                           </>
                                         )}
                                       </div>
+                                    </div>
+                                  )}
+
+                                  {/* Rendered Plots */}
+                                  {msg.plots && msg.plots.length > 0 && (
+                                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                      {msg.plots.map((plotPath: string, i: number) => {
+                                        const filename = plotPath.split(/[/\\]/).pop();
+                                        return (
+                                          <div key={i} className="rounded-xl overflow-hidden border border-white/[0.08] bg-white/[0.02] shadow-sm hover:border-[#c4b5fd]/40 transition-colors group cursor-zoom-in" onClick={() => window.open(`http://localhost:8000/api/plots/${filename}`, '_blank')}>
+                                            <img 
+                                              src={`http://localhost:8000/api/plots/${filename}`} 
+                                              alt={`Data Visualization ${i + 1}`} 
+                                              className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-500" 
+                                            />
+                                          </div>
+                                        );
+                                      })}
                                     </div>
                                   )}
                                 </div>

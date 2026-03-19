@@ -26,11 +26,49 @@ def execute_code(code: str, timeout: int = 60) -> dict:
     # Generate unique plot filename prefix
     plot_prefix = str(uuid.uuid4())[:8]
 
-    # Inject matplotlib interception code
+    # Inject matplotlib interception code with FORCED premium dark theme
     injection = f"""
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as _plt
+import matplotlib as _mpl
+
+# ══════════════════════════════════════════════
+# FORCED PREMIUM DARK THEME (high contrast)
+# ══════════════════════════════════════════════
+_mpl.rcParams.update({{
+    'figure.facecolor': '#0f0f14',
+    'axes.facecolor': '#1a1a24',
+    'savefig.facecolor': '#0f0f14',
+    'text.color': '#ffffff',
+    'axes.labelcolor': '#d0d0e0',
+    'xtick.color': '#c0c0d0',
+    'ytick.color': '#c0c0d0',
+    'axes.grid': True,
+    'grid.color': '#2e2e40',
+    'grid.alpha': 0.5,
+    'grid.linewidth': 0.5,
+    'axes.spines.top': False,
+    'axes.spines.right': False,
+    'axes.edgecolor': '#2e2e40',
+    'font.size': 12,
+    'axes.titlesize': 20,
+    'axes.titleweight': 'bold',
+    'axes.labelsize': 13,
+    'xtick.labelsize': 11,
+    'ytick.labelsize': 11,
+    'figure.figsize': [12, 7],
+    'figure.dpi': 150,
+    'axes.prop_cycle': _mpl.cycler('color', [
+        '#c084fc', '#818cf8', '#38bdf8', '#34d399',
+        '#fb923c', '#f87171', '#fbbf24', '#a78bfa',
+        '#22d3ee', '#4ade80', '#f472b6', '#e879f9'
+    ]),
+    'legend.facecolor': '#1a1a24',
+    'legend.edgecolor': '#2e2e40',
+    'legend.fontsize': 11,
+    'legend.framealpha': 0.95,
+}})
 
 _original_show = _plt.show
 _plot_counter = [0]
@@ -39,7 +77,7 @@ _saved_plots = []
 def _patched_show(*args, **kwargs):
     _plot_counter[0] += 1
     plot_path = r"{os.path.abspath(REPORTS_DIR)}/{plot_prefix}_plot_{{0}}.png".format(_plot_counter[0])
-    _plt.savefig(plot_path, dpi=150, bbox_inches='tight', facecolor='#111111', edgecolor='none')
+    _plt.savefig(plot_path, dpi=200, bbox_inches='tight', facecolor='#0f0f14', edgecolor='none')
     _saved_plots.append(plot_path)
     print(f"[PLOT_SAVED] {{plot_path}}")
     _plt.close('all')

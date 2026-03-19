@@ -10,12 +10,22 @@ coverage/
 **/__pycache__/
 **/*.pyc
 backend/venv/
-backend/aether.db
-backend/aether.db-journal
+backend/*.db
+backend/*.db-journal
 backend/chroma_data/
 backend/data/*
 !backend/data/.gitkeep
 backend/reports/*
 !backend/reports/.gitkeep
+backend/uploads/*
+!backend/uploads/.gitkeep
 reports/
+
+# Root-level DB files
+*.db
+*.sqlite
+*.sqlite3
+
+# Misc
+out.json
 backend/.env
